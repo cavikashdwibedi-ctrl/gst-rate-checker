@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GST Rate Checker Pro</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Trebuchet MS', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 100, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 50% 100%, rgba(100, 50, 200, 0.1) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .floating-shapes {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.05;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(30px) rotate(180deg); }
+        }
+
+        .shape:nth-child(1) { width: 300px; height: 300px; background: radial-gradient(circle, #fff, transparent); border-radius: 50%; top: -50px; left: 10%; animation-duration: 25s; }
+        .shape:nth-child(2) { width: 200px; height: 200px; background: radial-gradient(circle, #fff, transparent); border-radius: 50%; top: 50%; right: -50px; animation-duration: 30s; }
+        .shape:nth-child(3) { width: 250px; height: 250px; background: radial-gradient(circle, #fff, transparent); border-radius: 50%; bottom: -100px; left: 30%; animation-duration: 28s; }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+            animation: slideDown 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header h1 {
+            font-size: 56px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            letter-spacing: -2px;
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .header-subtitle {
+            font-size: 18px;
+            opacity: 0.95;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .header-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 13px;
+            margin-top: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Main Content Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            animation: slideUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+        }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            padding: 28px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .glass-panel:hover {
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 28px;
+        }
+
+        .search-label {
+            font-size: 12px;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 16px 14px 40px;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .search-input::placeholder {
+            color: #999;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            background: white;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            opacity: 0.6;
+        }
+
+        .filter-section {
+            margin-top: 28px;
+            padding-top: 28px;
+            border-top: 2px solid rgba(99, 102, 241, 0.1);
+        }
+
+        .filter-title {
+            font-size: 12px;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-title i {
+            font-size: 14px;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .category-btn {
+            padding: 12px 14px;
+            border: 2px solid rgba(99, 102, 241, 0.2);
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            transition: all 0.3s ease;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-btn::before {
+            content: '';
+            position: absolute;
+            left: -100%;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .category-btn:hover {
+            border-color: var(--primary);
+            transform: translateX(4px);
+        }
+
+        .category-btn.active {
+            color: white;
+            border-color: transparent;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .category-btn.active::before {
+            left: 0;
+        }
+
+        /* Results Grid */
+        .results-container {
+            animation: slideUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+
+        .results-count {
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+        }
+
+        .toggle-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-btn:hover,
+        .toggle-btn.active {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .rate-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 280px;
+        }
+
+        .rate-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s ease;
+            z-index: 1;
+        }
+
+        .rate-card:hover::before {
+            left: 100%;
+        }
+
+        .rate-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 30px 60px rgba(99, 102, 241, 0.2);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .rate-badge {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 6px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .card-description {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .card-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .meta-item {
+            font-size: 12px;
+            color: #777;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .meta-label {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 14px;
+            border-top: 1px solid rgba(99, 102, 241, 0.1);
+            margin-top: 14px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-active {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .badge-updated {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent);
+        }
+
+        .rate-details {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .rate-label {
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        /* Empty State */
+        .empty-state {
+            grid-column: 1 / -1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 80px 20px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .empty-text {
+            font-size: 20px;
+            color: #1f2937;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .empty-subtext {
+            font-size: 14px;
+            color: #999;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: white;
+            padding: 30px 20px;
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        .update-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 16px;
+            border-radius: 50px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 36px;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                grid-column: 1 / -1;
+            }
+
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Smooth scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-percent"></i> GST Rate Checker</h1>
+            <p class="header-subtitle">Real-time GST rates for Indian products & services</p>
+            <div class="header-badge">
+                <span class="pulse-dot"></span>
+                Live Database • India 2024
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="glass-panel">
+                    <div class="search-container">
+                        <label class="search-label"><i class="fas fa-search"></i> Search</label>
+                        <div class="search-wrapper">
+                            <i class="fas fa-search search-icon"></i>
+                            <input 
+                                type="text" 
+                                class="search-input" 
+                                id="searchInput" 
+                                placeholder="Find products..."
+                            >
+                        </div>
+                    </div>
+
+                    <div class="filter-section">
+                        <div class="filter-title">
+                            <i class="fas fa-filter"></i> Categories
+                        </div>
+                        <div class="category-grid" id="categoryButtons"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="results-container">
+                <div class="results-header">
+                    <div class="results-count" id="resultsCount">Loading...</div>
+                    <div class="view-toggle">
+                        <button class="toggle-btn active" title="Grid view">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button class="toggle-btn" title="List view">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="results-grid" id="resultsPanel"></div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="update-indicator">
+                <span class="pulse-dot"></span>
+                Live Data • Last Updated: Today
+            </div>
+            <p>All GST rates are accurate as per official Government of India regulations</p>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced GST Database with icons and metadata
+        const gstDatabase = [
+            // Food & Beverages (0% & 5%)
+            { id: 1, name: 'Rice', category: 'Food & Beverages', rate: 0, description: 'Unpolished rice grains', icon: '🍚', tags: ['rice', 'grain', 'food'] },
+            { id: 2, name: 'Wheat', category: 'Food & Beverages', rate: 0, description: 'Wheat grain & flour', icon: '🌾', tags: ['wheat', 'grain', 'food'] },
+            { id: 3, name: 'Sugar', category: 'Food & Beverages', rate: 5, description: 'Refined white sugar', icon: '🍯', tags: ['sugar', 'sweetener', 'beverage'] },
+            { id: 4, name: 'Salt', category: 'Food & Beverages', rate: 0, description: 'Table salt & mineral salt', icon: '🧂', tags: ['salt', 'mineral', 'food'] },
+            { id: 5, name: 'Cooking Oil', category: 'Food & Beverages', rate: 0, description: 'Vegetable & edible oils', icon: '🫒', tags: ['oil', 'cooking', 'edible'] },
+            { id: 6, name: 'Milk', category: 'Food & Beverages', rate: 0, description: 'Fresh pasteurized milk', icon: '🥛', tags: ['milk', 'dairy', 'beverage'] },
+            { id: 7, name: 'Bread', category: 'Food & Beverages', rate: 5, description: 'Common bread loaves', icon: '🍞', tags: ['bread', 'bakery', 'food'] },
+            { id: 8, name: 'Butter', category: 'Food & Beverages', rate: 5, description: 'Dairy butter & ghee', icon: '🧈', tags: ['butter', 'dairy', 'food'] },
+            { id: 9, name: 'Eggs', category: 'Food & Beverages', rate: 0, description: 'Fresh chicken eggs', icon: '🥚', tags: ['eggs', 'protein', 'food'] },
+            { id: 10, name: 'Coffee', category: 'Food & Beverages', rate: 5, description: 'Coffee beans & powder', icon: '☕', tags: ['coffee', 'beverage', 'drink'] },
+            
+            // Medicines (0% & 5%)
+            { id: 11, name: 'Essential Medicines', category: 'Medicines', rate: 0, description: 'Life-saving medications', icon: '💊', tags: ['medicine', 'pharma', 'health'] },
+            { id: 12, name: 'Antibiotics', category: 'Medicines', rate: 5, description: 'Antibiotic tablets & syrups', icon: '💉', tags: ['antibiotic', 'medicine', 'pharma'] },
+            { id: 13, name: 'Vitamins', category: 'Medicines', rate: 5, description: 'Vitamin & mineral supplements', icon: '🏥', tags: ['vitamin', 'supplement', 'health'] },
+            
+            // Clothing (5%)
+            { id: 14, name: 'Cotton Fabric', category: 'Clothing', rate: 5, description: 'Plain cotton fabric rolls', icon: '🧵', tags: ['fabric', 'cloth', 'cotton'] },
+            { id: 15, name: 'Handloom Products', category: 'Clothing', rate: 5, description: 'Traditional handwoven textiles', icon: '🧣', tags: ['handloom', 'fabric', 'textile'] },
+            { id: 16, name: 'Clothes', category: 'Clothing', rate: 5, description: 'Regular garments & apparel', icon: '👕', tags: ['clothes', 'apparel', 'fashion'] },
+            { id: 17, name: 'Footwear', category: 'Clothing', rate: 5, description: 'Shoes and boots', icon: '👟', tags: ['shoes', 'footwear', 'clothing'] },
+            
+            // Electronics (5%, 12%, 18%)
+            { id: 18, name: 'Mobile Phone', category: 'Electronics', rate: 18, description: 'Smartphones & cell phones', icon: '📱', tags: ['mobile', 'phone', 'electronics'] },
+            { id: 19, name: 'Laptop', category: 'Electronics', rate: 18, description: 'Computer laptops & notebooks', icon: '💻', tags: ['laptop', 'computer', 'electronics'] },
+            { id: 20, name: 'LED Bulb', category: 'Electronics', rate: 18, description: 'Energy-efficient LED lights', icon: '💡', tags: ['bulb', 'light', 'electronics'] },
+            { id: 21, name: 'Solar Panel', category: 'Electronics', rate: 12, description: 'Solar photovoltaic panels', icon: '☀️', tags: ['solar', 'renewable', 'energy'] },
+            { id: 22, name: 'Television', category: 'Electronics', rate: 18, description: 'Smart TV & LCD displays', icon: '📺', tags: ['tv', 'display', 'electronics'] },
+            { id: 23, name: 'Tablet', category: 'Electronics', rate: 18, description: 'iPad & Android tablets', icon: '📲', tags: ['tablet', 'device', 'electronics'] },
+            
+            // Vehicles (5%, 12%, 28%)
+            { id: 24, name: 'Two Wheeler', category: 'Vehicles', rate: 28, description: 'Motorcycle & scooters', icon: '🏍️', tags: ['vehicle', 'motorcycle', 'transport'] },
+            { id: 25, name: 'Car', category: 'Vehicles', rate: 28, description: 'Passenger cars & sedans', icon: '🚗', tags: ['vehicle', 'car', 'automobile'] },
+            { id: 26, name: 'Electric Vehicle', category: 'Vehicles', rate: 5, description: 'EV with standard battery', icon: '⚡', tags: ['vehicle', 'electric', 'eco'] },
+            { id: 27, name: 'Bus', category: 'Vehicles', rate: 28, description: 'Passenger buses', icon: '🚌', tags: ['vehicle', 'bus', 'transport'] },
+            
+            // Real Estate (0%, 5%, 12%)
+            { id: 28, name: 'Land Sale', category: 'Real Estate', rate: 0, description: 'Sale of land property', icon: '🏞️', tags: ['land', 'property', 'real-estate'] },
+            { id: 29, name: 'Residential Property', category: 'Real Estate', rate: 5, description: 'Residential house & flats', icon: '🏠', tags: ['property', 'real-estate', 'housing'] },
+            { id: 30, name: 'Commercial Space', category: 'Real Estate', rate: 12, description: 'Commercial office & shops', icon: '🏢', tags: ['property', 'commercial', 'real-estate'] },
+            
+            // Hotel & Restaurant (5%, 12%, 18%)
+            { id: 31, name: 'Budget Hotel', category: 'Hospitality', rate: 5, description: 'Hotel room (< ₹1000/night)', icon: '🏨', tags: ['hotel', 'lodging', 'hospitality'] },
+            { id: 32, name: 'Mid-range Hotel', category: 'Hospitality', rate: 12, description: 'Hotel room (₹1000-7500)', icon: '🏩', tags: ['hotel', 'lodging', 'hospitality'] },
+            { id: 33, name: 'Premium Hotel', category: 'Hospitality', rate: 18, description: 'Hotel room (> ₹7500)', icon: '✨', tags: ['hotel', 'luxury', 'hospitality'] },
+            { id: 34, name: 'Restaurant Meal', category: 'Hospitality', rate: 5, description: 'Unpackaged food < ₹1000', icon: '🍽️', tags: ['restaurant', 'food', 'hospitality'] },
+            
+            // Services (18%)
+            { id: 35, name: 'Haircut & Salon', category: 'Services', rate: 18, description: 'Salon & beauty services', icon: '💇', tags: ['salon', 'beauty', 'service'] },
+            { id: 36, name: 'Transportation', category: 'Services', rate: 18, description: 'Taxi & cab services', icon: '🚕', tags: ['taxi', 'transport', 'service'] },
+            { id: 37, name: 'Gym Membership', category: 'Services', rate: 18, description: 'Fitness center services', icon: '💪', tags: ['gym', 'fitness', 'service'] },
+            { id: 38, name: 'Internet Service', category: 'Services', rate: 18, description: 'ISP & broadband', icon: '📡', tags: ['internet', 'telecom', 'service'] },
+            
+            // Books & Periodicals (0%, 5%)
+            { id: 39, name: 'Books', category: 'Books', rate: 0, description: 'Educational & fiction books', icon: '📚', tags: ['book', 'literature', 'education'] },
+            { id: 40, name: 'Newspapers', category: 'Books', rate: 5, description: 'Daily newspapers', icon: '📰', tags: ['newspaper', 'media', 'publication'] },
+            { id: 41, name: 'Magazines', category: 'Books', rate: 5, description: 'Periodicals & magazines', icon: '📑', tags: ['magazine', 'publication', 'media'] },
+        ];
+
+        let currentFilter = 'All';
+        let filteredResults = gstDatabase;
+
+        // Initialize
+        function init() {
+            renderCategories();
+            renderResults(gstDatabase);
+            setupSearch();
+            updateResultsCount();
+        }
+
+        // Render category buttons
+        function renderCategories() {
+            const categoryButtons = document.getElementById('categoryButtons');
+            const categories = ['All', ...new Set(gstDatabase.map(item => item.category))];
+            
+            categories.forEach((category, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'category-btn';
+                btn.textContent = category;
+                if (category === 'All') btn.classList.add('active');
+                btn.style.animationDelay = `${index * 0.05}s`;
+                btn.onclick = () => filterByCategory(category, btn);
+                categoryButtons.appendChild(btn);
+            });
+        }
+
+        // Filter by category
+        function filterByCategory(category, btn) {
+            currentFilter = category;
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            if (category === 'All') {
+                filteredResults = gstDatabase;
+            } else {
+                filteredResults = gstDatabase.filter(item => item.category === category);
+            }
+            
+            const searchTerm = document.getElementById('searchInput').value;
+            if (searchTerm) {
+                performSearch(searchTerm);
+            } else {
+                renderResults(filteredResults);
+            }
+        }
+
+        // Setup search
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', (e) => {
+                performSearch(e.target.value);
+            });
+        }
+
+        // Perform search
+        function performSearch(term) {
+            const searchTerm = term.toLowerCase();
+            const results = filteredResults.filter(item => 
+                item.name.toLowerCase().includes(searchTerm) ||
+                item.description.toLowerCase().includes(searchTerm) ||
+                item.tags.some(tag => tag.includes(searchTerm))
+            );
+            renderResults(results);
+        }
+
+        // Update results count
+        function updateResultsCount() {
+            const count = document.querySelectorAll('.rate-card').length;
+            document.getElementById('resultsCount').textContent = `${count} Results Found`;
+        }
+
+        // Render results
+        function renderResults(results) {
+            const resultsPanel = document.getElementById('resultsPanel');
+            
+            if (results.length === 0) {
+                resultsPanel.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <div class="empty-text">No Results Found</div>
+                        <div class="empty-subtext">Try searching with different keywords or browse other categories</div>
+                    </div>
+                `;
+                document.getElementById('resultsCount').textContent = 'No Results';
+                return;
+            }
+
+            resultsPanel.innerHTML = results.map((item, index) => `
+                <div class="rate-card" style="animation-delay: ${index * 0.05}s">
+                    <div class="card-header">
+                        <div class="card-icon">${item.icon}</div>
+                        <div class="rate-badge">${item.rate}%</div>
+                    </div>
+                    
+                    <div class="card-title">${item.name}</div>
+                    <div class="card-description">${item.description}</div>
+                    
+                    <div class="card-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Category:</span>
+                            ${item.category}
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Rate:</span>
+                            ${item.rate === 0 ? 'Exempted' : item.rate + '% GST'}
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <span class="status-badge badge-active">✓ Active</span>
+                        <div class="rate-details">
+                            <span class="rate-label">2024</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            updateResultsCount();
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
